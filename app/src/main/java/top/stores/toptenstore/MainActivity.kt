@@ -2,53 +2,86 @@ package top.stores.toptenstore
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.OrientationHelper
+import androidx.recyclerview.widget.RecyclerView
+import com.android.volley.Request
+import com.android.volley.RequestQueue
+import com.android.volley.Response
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
-import com.androidnetworking.AndroidNetworking
-import com.androidnetworking.interfaces.JSONObjectRequestListener
-import com.androidnetworking.interfaces.ParsedRequestListener
 import kotlinx.android.synthetic.main.activity_main.*
-import okhttp3.Response
+import kotlinx.android.synthetic.main.item_view.*
+import org.json.JSONArray
+import org.json.JSONException
+import org.json.JSONObject
 import top.stores.toptenstore.model.Data
-import top.stores.toptenstore.model.Request
+import java.lang.reflect.Method
 
 class MainActivity : AppCompatActivity() {
 
-    private val datalist : MutableList<Data> = mutableListOf()
-    private lateinit var myAdapter : StoreAdapter
-    private val url = "http://sandbox.bottlerocketapps.com/BR_Android_CodingExam_2015_Server/stores.json"
+    private lateinit var mRecyclerView : RecyclerView
+    private lateinit var mExampleAdapter : StoreAdapter
+    private lateinit var mExampleList : ArrayList<ExampleItem>
+    private lateinit var mRequestQue : RequestQueue
+
+
+
+
+
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        //setup Adapter
-        myAdapter = StoreAdapter((datalist))
 
-        //setup recyclerview
-        my_recycler_view.layoutManager = LinearLayoutManager(this)
-        my_recycler_view.addItemDecoration(DividerItemDecoration(this, OrientationHelper.VERTICAL))
-        my_recycler_view.adapter = myAdapter
+        mRecyclerView = findViewById(R.id.recycler_view)
+        mRecyclerView.setHasFixedSize(true)
+        mRecyclerView.layoutManager = LinearLayoutManager(this)
 
+        mExampleList = ArrayList<ExampleItem>()
 
-//        AndroidNetworking.initialize(this)
-//
-//        AndroidNetworking.get("http://sandbox.bottlerocketapps.com/BR_Android_CodingExam_2015_Server/stores.json")
-//            .build()
-//            .getAsObject(Data::class.java, object : ParsedRequestListener<Request>)
+        mRequestQue = Volley.newRequestQueue(this)
 
-       val que = Volley.newRequestQueue(this)
-        //val req = JsonObjectRequest(Request.Method.
-
+        parseJason()
 
 
     }
 
 
+     fun parseJason(){
+          val url = "http://sandbox.bottlerocketapps.com/BR_Android_CodingExam_2015_Server/stores.json"
 
+         val request = JsonObjectRequest(Request.Method.GET, url, null,
+             Response.Listener<JSONObject>(){
+                 response ->
+                 try {
+                     val jsonArray : JSONArray = response.getJSONArray("name")
+
+                     for( i in 0 until jsonArray.length()){
+                         val hit : JSONObject = jsonArray.getJSONObject(i)
+
+                         val name : String = hit.getString("name")
+                         val imageUrl = hit.getString("storeLogoURL")
+
+                         mExampleList.add(ExampleItem(imageUrl, name))
+                     }
+
+                     mExampleAdapter = StoreAdapter(this, mExampleList)
+                     mRecyclerView.adapter = mExampleAdapter
+
+
+                 }catch (e : JSONException){
+                     e.printStackTrace()
+                 }
+             }, Response.ErrorListener {
+                 error -> error.printStackTrace()
+             })
+         mRequestQue.add(request)
+     }
 
 
 }
