@@ -46,7 +46,13 @@ class MainActivity : AppCompatActivity() {
 
         mRequestQue = Volley.newRequestQueue(this)
 
-        parseJason()
+        mExampleList.add(ExampleItem("http://sandbox.bottlerocketapps.com/BR_Android_CodingExam_2015_Server/images/neimanmarcus.jpeg", "Tree"))
+        mExampleList.add(ExampleItem("http://sandbox.bottlerocketapps.com/BR_Android_CodingExam_2015_Server/images/neimanmarcus.jpeg", "See"))
+        mExampleAdapter = StoreAdapter(this, mExampleList)
+        mRecyclerView.adapter = mExampleAdapter
+
+
+        //parseJason()
 
 
     }
@@ -54,18 +60,19 @@ class MainActivity : AppCompatActivity() {
 
      fun parseJason(){
           val url = "http://sandbox.bottlerocketapps.com/BR_Android_CodingExam_2015_Server/stores.json"
+         val urlB = "https://api.flickr.com/services/feeds/photos_public.gne?tags=kitten&format=json"
 
-         val request = JsonObjectRequest(Request.Method.GET, url, null,
+         val request = JsonObjectRequest(Request.Method.GET, urlB, null,
              Response.Listener<JSONObject>(){
                  response ->
                  try {
-                     val jsonArray : JSONArray = response.getJSONArray("name")
+                     val jsonArray : JSONArray = response.getJSONArray("title")
 
                      for( i in 0 until jsonArray.length()){
                          val hit : JSONObject = jsonArray.getJSONObject(i)
 
-                         val name : String = hit.getString("name")
-                         val imageUrl = hit.getString("storeLogoURL")
+                         val name : String = hit.getString("title")
+                         val imageUrl = hit.getString("src")
 
                          mExampleList.add(ExampleItem(imageUrl, name))
                      }
